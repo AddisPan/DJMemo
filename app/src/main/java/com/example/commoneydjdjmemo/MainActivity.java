@@ -29,11 +29,30 @@ public class MainActivity extends AppCompatActivity {
         binding.btnLogin.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                // 取得輸入框文字
-                String username = binding.etUsername.getText().toString();
+                // 1. 取得輸入框文字 (去除前後空白)
+                String username = binding.etUsername.getText().toString().trim();
+                String password = binding.etPassword.getText().toString().trim();
 
-                // 顯示 Toast 訊息
-                Toast.makeText(MainActivity.this, "點擊登入！帳號：" + username, Toast.LENGTH_SHORT).show();
+                // 2. 檢查是否空白 (防呆機制)
+                if (username.isEmpty()) {
+                    binding.etUsername.setError("請輸入帳號");
+                    return; // 中斷程式，不往下跑
+                }
+                if (password.isEmpty()) {
+                    binding.etPassword.setError("請輸入密碼");
+                    return;
+                }
+
+                // 3. 驗證帳號密碼 (模擬後端驗證)
+                if (username.equals("admin") && password.equals("1234")) {
+                    // 登入成功
+                    Toast.makeText(MainActivity.this, "登入成功！", Toast.LENGTH_SHORT).show();
+
+                    // TODO: 下一步要跳轉頁面
+                } else {
+                    // 登入失敗
+                    Toast.makeText(MainActivity.this, "帳號或密碼錯誤", Toast.LENGTH_SHORT).show();
+                }
             }
         });
     }
