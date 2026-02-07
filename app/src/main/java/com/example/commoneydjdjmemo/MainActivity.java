@@ -45,10 +45,18 @@ public class MainActivity extends AppCompatActivity {
 
                 // 3. 驗證帳號密碼 (模擬後端驗證)
                 if (username.equals("admin") && password.equals("1234")) {
-                    // 登入成功
                     Toast.makeText(MainActivity.this, "登入成功！", Toast.LENGTH_SHORT).show();
 
-                    // TODO: 下一步要跳轉頁面
+                    // --- 新增這三行 ---
+                    // 1. 建立意圖：從 這裡(this) 去 HomeActivity
+                    android.content.Intent intent = new android.content.Intent(MainActivity.this, HomeActivity.class);
+
+                    // 2. 出發！
+                    startActivity(intent);
+
+                    // 3. 關門 (把登入頁關掉，這樣按上一頁就會直接離開 App，不會回到登入頁)
+                    finish();
+                    // ----------------
                 } else {
                     // 登入失敗
                     Toast.makeText(MainActivity.this, "帳號或密碼錯誤", Toast.LENGTH_SHORT).show();
