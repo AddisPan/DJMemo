@@ -15,53 +15,14 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
 
-        // 2. 初始化 Binding
-        binding = ActivityMainBinding.inflate(getLayoutInflater());
-
-        // 3. 設定畫面 (原本是 R.layout.activity_main，現在改成 binding.getRoot())
-        setContentView(binding.getRoot());
-
-        // --- 測試區 ---
-
-        // 4. 設定按鈕點擊事件 (不用 findViewById，直接用 binding.元件ID)
-        // 你的 ID 是 btn_login，這裡就會自動變成 btnLogin (駝峰式命名)
-        binding.btnLogin.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                // 1. 取得輸入框文字 (去除前後空白)
-                String username = binding.etUsername.getText().toString().trim();
-                String password = binding.etPassword.getText().toString().trim();
-
-                // 2. 檢查是否空白 (防呆機制)
-                if (username.isEmpty()) {
-                    binding.etUsername.setError("請輸入帳號");
-                    return; // 中斷程式，不往下跑
-                }
-                if (password.isEmpty()) {
-                    binding.etPassword.setError("請輸入密碼");
-                    return;
-                }
-
-                // 3. 驗證帳號密碼 (模擬後端驗證)
-                if (username.equals("admin") && password.equals("1234")) {
-                    Toast.makeText(MainActivity.this, "登入成功！", Toast.LENGTH_SHORT).show();
-
-                    // --- 新增這三行 ---
-                    // 1. 建立意圖：從 這裡(this) 去 HomeActivity
-                    android.content.Intent intent = new android.content.Intent(MainActivity.this, HomeActivity.class);
-
-                    // 2. 出發！
-                    startActivity(intent);
-
-                    // 3. 關門 (把登入頁關掉，這樣按上一頁就會直接離開 App，不會回到登入頁)
-                    finish();
-                    // ----------------
-                } else {
-                    // 登入失敗
-                    Toast.makeText(MainActivity.this, "帳號或密碼錯誤", Toast.LENGTH_SHORT).show();
-                }
-            }
-        });
+        // --- 核心邏輯：如果是第一次啟動，就載入 LoginFragment ---
+        if (savedInstanceState == null) {
+            getSupportFragmentManager()
+                    .beginTransaction()
+                    .add(R.id.fragment_container, new LoginFragment())
+                    .commit();
+        }
     }
 }
