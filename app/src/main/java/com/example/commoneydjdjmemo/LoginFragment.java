@@ -11,7 +11,7 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
 // 1. 匯入databinding自動生成的類別 (名稱規則：xml檔名轉駝峰 + Binding)
-import com.example.commoneydj1djmemo.databinding.FragmentLoginBinding;
+import com.example.commoneydjdjmemo.databinding.FragmentLoginBinding;
 
 public class LoginFragment extends Fragment {
 
