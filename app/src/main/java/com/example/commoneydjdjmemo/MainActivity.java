@@ -14,14 +14,22 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+//        super.onCreate(savedInstanceState);
+//        setContentView(R.layout.activity_main);
+//
+//        // --- 核心邏輯：如果是第一次啟動，就載入 LoginFragment ---
+//        if (savedInstanceState == null) {
+//            getSupportFragmentManager()
+//                    .beginTransaction()
+//                    .add(R.id.fragment_container, new LoginFragment())
+//                    .commit();
+//        }
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        // --- 核心邏輯：如果是第一次啟動，就載入 LoginFragment ---
         if (savedInstanceState == null) {
-            getSupportFragmentManager()
-                    .beginTransaction()
-                    .add(R.id.fragment_container, new LoginFragment())
+            getSupportFragmentManager().beginTransaction()
+                    .replace(R.id.fragment_container, new LifecycleTestFragment()) // 換成測試用的 Fragment
                     .commit();
         }
     }
