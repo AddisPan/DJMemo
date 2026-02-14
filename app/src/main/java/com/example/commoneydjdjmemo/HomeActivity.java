@@ -4,6 +4,9 @@ import android.os.Bundle;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView; // 匯入 RecyclerView
+import android.content.Intent;
+import android.view.View;
+import android.widget.Button;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -32,5 +35,18 @@ public class HomeActivity extends AppCompatActivity {
         // 6. 設定 RecyclerView
         rvMemo.setLayoutManager(new LinearLayoutManager(this));
         rvMemo.setAdapter(adapter);
+
+        // 1. 綁定剛剛新增的按鈕
+        Button btnAddNote = findViewById(R.id.btn_add_note);
+
+        // 2. 設定點擊事件：跳轉到 EditorActivity
+        btnAddNote.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // 從 HomeActivity 跳轉到 EditorActivity
+                Intent intent = new Intent(HomeActivity.this, EditorActivity.class);
+                startActivity(intent);
+            }
+        });
     }
 }
