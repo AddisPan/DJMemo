@@ -1,5 +1,6 @@
 package com.example.commoneydjdjmemo; // 你的 package
 
+import android.content.Intent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -27,14 +28,33 @@ public class MemoAdapter extends RecyclerView.Adapter<MemoAdapter.MemoViewHolder
 
     @Override
     public void onBindViewHolder(@NonNull MemoViewHolder holder, int position) {
+        // 1. 取得現在這一行的資料
         Memo memo = memoList.get(position);
 
-        // 3. 設定資料 (直接操作 ViewHolder 裡的變數)
+        // 2. 將資料設定到畫面上 (TextView)
         holder.tvTitle.setText(memo.getTitle());
         holder.tvContent.setText(memo.getContent());
-
-        // 注意：如果你昨天定義的是 getDate() 還是 getTime()，這裡要對應
         holder.tvDate.setText(memo.getTime());
+
+        // 3. 🎯 今天的新任務：設定這一整行 (itemView) 的點擊事件
+        holder.itemView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // 【任務 A】使用 Log 印出標題 (這只有在 Android Studio 下方的 Logcat 看得到)
+                // 記得如果 Log 變成紅字，要按 Alt+Enter 匯入 android.util.Log;
+                android.util.Log.d("MemoClick", "使用者點擊了筆記：" + memo.getTitle());
+
+                // 【任務 B】把資料打包，跳轉到 EditorActivity (作為編輯模式)
+                Intent intent = new Intent(v.getContext(), EditorActivity.class);
+
+                // 把這筆筆記的標題跟內容當作「包裹」塞進去
+                intent.putExtra("EDIT_TITLE", memo.getTitle());
+                intent.putExtra("EDIT_CONTENT", memo.getContent());
+
+                // 出發！
+                v.getContext().startActivity(intent);
+            }
+        });
     }
 
     @Override

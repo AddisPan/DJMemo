@@ -1,5 +1,6 @@
 package com.example.commoneydjdjmemo; // 請確認這是你的 package 名稱
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
@@ -24,6 +25,20 @@ public class EditorActivity extends AppCompatActivity {
         etContent = findViewById(R.id.et_content);
         btnSaveSp = findViewById(R.id.btn_save_sp);
         btnSaveFile = findViewById(R.id.btn_save_file);
+
+        // 🎯 接收從 HomeActivity (透過 Adapter) 傳過來的包裹
+        Intent intent = getIntent();
+        String passedTitle = intent.getStringExtra("EDIT_TITLE");
+        String passedContent = intent.getStringExtra("EDIT_CONTENT");
+
+        // 如果包裹不是空的 (代表是點擊列表進來的，不是按右下角 + 號進來的)
+        // 就把文字直接填入 EditText 中
+        if (passedTitle != null) {
+            etTitle.setText(passedTitle);
+        }
+        if (passedContent != null) {
+            etContent.setText(passedContent);
+        }
 
         // 2. 設定「儲存 (SP)」按鈕的點擊事件
         btnSaveSp.setOnClickListener(new View.OnClickListener() {
