@@ -44,10 +44,26 @@ public class EditorActivity extends AppCompatActivity {
         btnSaveSp.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                // TODO: 未來這裡要寫 SharedPreferences 的儲存邏輯
-                Toast.makeText(EditorActivity.this, "點擊了儲存 (SP)", Toast.LENGTH_SHORT).show();
+                // 1. 取得使用者輸入的標題與內容
+                String title = etTitle.getText().toString();
+                String content = etContent.getText().toString();
 
-                // 儲存完畢後，關閉這一頁，就會自動回到 HomeActivity 列表頁
+                // (你可以先寫死今天的日期)
+                String date = "2026/02/16";
+
+                // 2. 把輸入的內容包裝成一個 Memo 物件
+                Memo newMemo = new Memo(title, content, date);
+
+                // 3. 從 SP 拿出「舊的筆記清單」
+                java.util.List<Memo> currentList = SPUtils.getMemoList(EditorActivity.this);
+
+                // 4. 把「新的筆記」加進去清單裡
+                currentList.add(newMemo);
+
+                // 5. 把更新後的清單，重新存回 SP 裡面！
+                SPUtils.saveMemoList(EditorActivity.this, currentList);
+
+                // 6. 存檔完畢，關閉這個頁面回到首頁
                 finish();
             }
         });
