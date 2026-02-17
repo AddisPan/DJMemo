@@ -1,36 +1,59 @@
 package com.example.commoneydjdjmemo; // 記得確認這行要是你的 package
 
 import java.io.Serializable;
+import org.simpleframework.xml.Element; // 新增匯入
+import org.simpleframework.xml.Root;    // 新增匯入
 
-// 1. 實作 Serializable (打勾✅)
+// 1. 加上 @Root 標籤，告訴 Simple-XML 這是一個 XML 節點
+@Root(name = "Memo")
 public class Memo implements Serializable {
 
-    // 2. 定義所有欄位 (打勾✅)
-    private long id;            // 唯一識別碼 (資料庫用)
-    private String time;        // 時間 (原本叫 date，改叫 time 比較通用)
-    private String tag;         // 標籤 (例如：工作、生活)
-    private String title;       // 標題
-    private String content;     // 內容
-    private boolean isCompleted;// 是否完成 (打勾✅)
-    private boolean isSelected; // 是否選取 (刪除用) (打勾✅)
+    // 2. 每個想要存進 XML 的欄位，上面都要加 @Element(required = false)
+    // required = false 代表如果讀取時沒這個欄位，也不要報錯閃退
+    @Element(required = false)
+    private long id;
 
-    // 建構子：快速產生一筆新筆記
+    @Element(required = false)
+    private String time;
+
+    @Element(required = false)
+    private String tag;
+
+    @Element(required = false)
+    private String title;
+
+    @Element(required = false)
+    private String content;
+
+    @Element(required = false)
+    private boolean isCompleted;
+
+    @Element(required = false)
+    private boolean isSelected;
+
+    // =========================================================
+    // 【超級重要新增】Simple-XML 專用的空建構子 (不可省略！)
+    // =========================================================
+    public Memo() {
+    }
+
+    // =========================================================
+    // 原本你寫的建構子 (保留，給你在 EditorActivity 新增筆記時用)
+    // =========================================================
     public Memo(String title, String content, String time) {
-        // 這裡我們先用當下時間當作 id，確保每筆都不一樣
         this.id = System.currentTimeMillis();
         this.title = title;
         this.content = content;
         this.time = time;
 
-        // 預設值
         this.tag = "一般";
         this.isCompleted = false;
         this.isSelected = false;
     }
 
-    // 3. 生成 Getter / Setter (打勾✅)
-    // 下面這些是讓外部存取資料用的
-
+    // =========================================================
+    // 3. 原本的 Getter / Setter (完全保留不動)
+    // =========================================================
     public long getId() { return id; }
     public void setId(long id) { this.id = id; }
 

@@ -78,7 +78,8 @@ public class HomeActivity extends AppCompatActivity {
         // 1. 清空舊畫面
         memoList.clear();
         // 2. 從 SP 工具箱 (SPUtils) 拿出最新存檔的資料
-        memoList.addAll(SPUtils.getMemoList(this));
+        //memoList.addAll(SPUtils.getMemoList(this));
+        memoList.addAll(FileUtils.readFromXML(this));
         // 3. 告訴 Adapter 資料有變，請馬上更新畫面！
         adapter.notifyDataSetChanged();
     }

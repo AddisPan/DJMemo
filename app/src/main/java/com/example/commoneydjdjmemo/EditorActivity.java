@@ -5,8 +5,10 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.Toast;
+
 import androidx.appcompat.app.AppCompatActivity;
+
+import java.util.List;
 
 public class EditorActivity extends AppCompatActivity {
 
@@ -72,10 +74,21 @@ public class EditorActivity extends AppCompatActivity {
         btnSaveFile.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                // TODO: 未來這裡要寫 File 檔案的儲存邏輯
-                Toast.makeText(EditorActivity.this, "點擊了儲存 (File)", Toast.LENGTH_SHORT).show();
+                // 取得輸入內容
+                String title = etTitle.getText().toString();
+                String content = etContent.getText().toString();
+                Memo newMemo = new Memo(title, content, "2026/02/16");
 
-                // 一樣關閉頁面返回
+                // 1. 從 File 讀取舊資料 (這裡加上 java.util.List 避免找不到工具)
+                java.util.List<Memo> currentList = FileUtils.readFromXML(EditorActivity.this);
+
+                // 2. 加入新資料
+                currentList.add(newMemo);
+
+                // 3. 存回 File (XML格式)
+                FileUtils.saveToXML(EditorActivity.this, currentList);
+
+                // 4. 關閉頁面
                 finish();
             }
         });
