@@ -67,6 +67,13 @@ public class HomeActivity extends AppCompatActivity {
         } else {
             android.util.Log.e("GsonTest", "解析失敗，資料為空！");
         }
+
+        // 綁定剛剛新增的跳轉按鈕
+        Button btnGoLegacy = findViewById(R.id.btn_go_legacy);
+        btnGoLegacy.setOnClickListener(v -> {
+            Intent intent = new Intent(HomeActivity.this, LegacyListActivity.class);
+            startActivity(intent);
+        });
     } // <--- 這裡是 onCreate 結束的大括號！
 
     // ========================================================
@@ -78,7 +85,7 @@ public class HomeActivity extends AppCompatActivity {
         // 1. 清空舊畫面
         memoList.clear();
         // 2. 從 SP 工具箱 (SPUtils) 拿出最新存檔的資料
-        //memoList.addAll(SPUtils.getMemoList(this));
+        memoList.addAll(SPUtils.getMemoList(this));
         memoList.addAll(FileUtils.readFromXML(this));
         // 3. 告訴 Adapter 資料有變，請馬上更新畫面！
         adapter.notifyDataSetChanged();
