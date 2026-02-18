@@ -1,4 +1,4 @@
-package com.example.commoneydjdjmemo; // 請確認這是你的 package 名稱
+package com.example.commoneydjdjmemo;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -16,10 +16,13 @@ public class EditorActivity extends AppCompatActivity {
     private EditText etTitle, etTag, etContent;
     private Button btnSaveSp, btnSaveFile;
 
+    // 記錄目前是第幾筆資料 (預設 -1 代表是按 + 號新增的)
+    private int editPosition = -1;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_editor); // 綁定剛畫好的介面
+        setContentView(R.layout.activity_editor); // 綁定介面
 
         // 1. 綁定 ID
         etTitle = findViewById(R.id.et_title);
@@ -28,69 +31,93 @@ public class EditorActivity extends AppCompatActivity {
         btnSaveSp = findViewById(R.id.btn_save_sp);
         btnSaveFile = findViewById(R.id.btn_save_file);
 
-        // 🎯 接收從 HomeActivity (透過 Adapter) 傳過來的包裹
+        // 2. 接收從 HomeActivity (包含 Adapter) 傳過來的包裹
         Intent intent = getIntent();
-        String passedTitle = intent.getStringExtra("EDIT_TITLE");
-        String passedContent = intent.getStringExtra("EDIT_CONTENT");
 
-        // 如果包裹不是空的 (代表是點擊列表進來的，不是按右下角 + 號進來的)
-        // 就把文字直接填入 EditText 中
+        // 統一使用小寫的 key 來接收資料 (對齊 MemoAdapter 裡的設定)
+        String passedTitle = intent.getStringExtra("title");
+        String passedTag = intent.getStringExtra("tag");
+        String passedContent = intent.getStringExtra("content");
+
+        // 接收 position，如果沒收到 (代表是按+號進來的) 就預設為 -1
+        editPosition = intent.getIntExtra("memo_position", -1);
+
+        // 3. 如果包裹有東西 (代表是點舊筆記進來的)，就把文字填入 EditText
         if (passedTitle != null) {
             etTitle.setText(passedTitle);
+        }
+        if (passedTag != null) {
+            etTag.setText(passedTag);
         }
         if (passedContent != null) {
             etContent.setText(passedContent);
         }
 
-        // 2. 設定「儲存 (SP)」按鈕的點擊事件
+        // ==========================================
+        // 4. 設定「儲存 (SP)」按鈕的點擊事件 (支援新增與修改)
+        // ==========================================
         btnSaveSp.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                // 1. 取得使用者輸入的標題與內容
-                String title = etTitle.getText().toString();
-                String content = etContent.getText().toString();
+                // 取得輸入內容並建立 Memo 物件
+                Memo memo = createMemoFromInput();
 
-                // (你可以先寫死今天的日期)
-                String date = "2026/02/16";
+                // 讀取現有的 SP 清單
+                List<Memo> currentList = SPUtils.getMemoList(EditorActivity.this);
 
-                // 2. 把輸入的內容包裝成一個 Memo 物件
-                Memo newMemo = new Memo(title, content, date);
+                // 判斷要「新增」還是「替換」
+                if (editPosition == -1) {
+                    currentList.add(0, memo); // 加到最前面
+                } else {
+                    currentList.set(editPosition, memo); // 替換舊資料
+                }
 
-                // 3. 從 SP 拿出「舊的筆記清單」
-                java.util.List<Memo> currentList = SPUtils.getMemoList(EditorActivity.this);
-
-                // 4. 把「新的筆記」加進去清單裡
-                currentList.add(newMemo);
-
-                // 5. 把更新後的清單，重新存回 SP 裡面！
+                // 存回 SP 並關閉頁面
                 SPUtils.saveMemoList(EditorActivity.this, currentList);
-
-                // 6. 存檔完畢，關閉這個頁面回到首頁
                 finish();
             }
         });
 
-        // 3. 設定「儲存 (File)」按鈕的點擊事件
+        // ==========================================
+        // 5. 設定「儲存 (File)」按鈕的點擊事件 (支援新增與修改)
+        // ==========================================
         btnSaveFile.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                // 取得輸入內容
-                String title = etTitle.getText().toString();
-                String content = etContent.getText().toString();
-                Memo newMemo = new Memo(title, content, "2026/02/16");
+                // 取得輸入內容並建立 Memo 物件
+                Memo memo = createMemoFromInput();
 
-                // 1. 從 File 讀取舊資料 (這裡加上 java.util.List 避免找不到工具)
-                java.util.List<Memo> currentList = FileUtils.readFromXML(EditorActivity.this);
+                // 讀取現有的 File 清單
+                List<Memo> currentList = FileUtils.readFromXML(EditorActivity.this);
 
-                // 2. 加入新資料
-                currentList.add(newMemo);
+                // 判斷要「新增」還是「替換」
+                if (editPosition == -1) {
+                    currentList.add(0, memo); // 加到最前面
+                } else {
+                    currentList.set(editPosition, memo); // 替換舊資料
+                }
 
-                // 3. 存回 File (XML格式)
+                // 存回 XML 並關閉頁面
                 FileUtils.saveToXML(EditorActivity.this, currentList);
-
-                // 4. 關閉頁面
                 finish();
             }
         });
+    }
+
+    /**
+     * 這是一個小工具方法：把畫面上輸入的文字打包成一個 Memo 物件
+     * 這樣我們就不用在 SP 和 File 的按鈕裡面重複寫兩次一樣的程式碼了！
+     */
+    private Memo createMemoFromInput() {
+        String title = etTitle.getText().toString();
+        String tag = etTag.getText().toString();
+        String content = etContent.getText().toString();
+
+        Memo memo = new Memo();
+        memo.setTitle(title);
+        memo.setTag(tag);
+        memo.setContent(content);
+        memo.setTime("2026/02/18"); // 今天的日期
+        return memo;
     }
 }

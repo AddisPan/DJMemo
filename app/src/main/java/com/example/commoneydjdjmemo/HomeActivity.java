@@ -82,12 +82,17 @@ public class HomeActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        // 1. 清空舊畫面
-        memoList.clear();
-        // 2. 從 SP 工具箱 (SPUtils) 拿出最新存檔的資料
-        memoList.addAll(SPUtils.getMemoList(this));
-        memoList.addAll(FileUtils.readFromXML(this));
-        // 3. 告訴 Adapter 資料有變，請馬上更新畫面！
-        adapter.notifyDataSetChanged();
+        // 確保你的 memoList 和 adapter 已經在 onCreate 裡面初始化過了
+        if (memoList != null && adapter != null) {
+
+            // 1. 把看守員(Adapter)正在盯著的箱子「清空」
+            memoList.clear();
+
+            // 2. 去檔案裡把最新的資料讀出來，並「全部倒進」這個箱子裡
+            memoList.addAll(FileUtils.readFromXML(this));
+
+            // 3. 拍拍看守員的肩膀，跟他說：「箱子裡的東西換囉，請重新整理畫面！」
+            adapter.notifyDataSetChanged();
+        }
     }
 }
