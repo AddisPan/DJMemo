@@ -8,6 +8,9 @@ import android.widget.EditText;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
 import java.util.List;
 
 public class EditorActivity extends AppCompatActivity {
@@ -110,14 +113,20 @@ public class EditorActivity extends AppCompatActivity {
      */
     private Memo createMemoFromInput() {
         String title = etTitle.getText().toString();
-        String tag = etTag.getText().toString();
+        String tag = etTag.getText().toString(); // 如果你還沒做 tag 輸入框，這行可能要先拿掉或給空字串
         String content = etContent.getText().toString();
+
+        // 🎯 重構重點：動態取得當下時間
+        // 格式範例：2026/02/19 10:30
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd HH:mm", Locale.getDefault());
+        String currentDate = sdf.format(new Date());
 
         Memo memo = new Memo();
         memo.setTitle(title);
         memo.setTag(tag);
         memo.setContent(content);
-        memo.setTime("2026/02/18"); // 今天的日期
+        memo.setTime(currentDate); // 使用動態時間！
+
         return memo;
     }
 }
