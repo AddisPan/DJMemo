@@ -100,14 +100,34 @@ public class HomeActivity extends AppCompatActivity {
                 // (1) 把最新的 (已經移除了項目的) 清單，重新存進 XML 裡覆蓋舊的
                 FileUtils.saveToXML(HomeActivity.this, memoList);
 
-                // (2) 告訴 Adapter：「資料變了，趕快重新整理畫面！」
-                adapter.notifyDataSetChanged();
+                adapter.updateList(memoList); // 一樣，呼叫神奇同步方法確保備份清單也被更新
 
                 // (3) 跳出小提示
                 android.widget.Toast.makeText(HomeActivity.this, "刪除成功！", android.widget.Toast.LENGTH_SHORT).show();
             } else {
                 // 如果使用者什麼都沒勾就按刪除
                 android.widget.Toast.makeText(HomeActivity.this, "請先勾選要刪除的筆記", android.widget.Toast.LENGTH_SHORT).show();
+            }
+        });
+
+        // ==========================================
+        // 🎯 綁定 SearchView 搜尋功能
+        // ==========================================
+        androidx.appcompat.widget.SearchView searchView = findViewById(R.id.search_view);
+
+        searchView.setOnQueryTextListener(new androidx.appcompat.widget.SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String query) {
+                return false; // 按下鍵盤的「搜尋」鍵時要做的事 (我們不需要，因為我們邊打字邊搜)
+            }
+
+            @Override
+            public boolean onQueryTextChange(String newText) {
+                // 當搜尋框的文字改變時，立刻叫 Adapter 去過濾資料！
+                if (adapter != null) {
+                    adapter.getFilter().filter(newText);
+                }
+                return true;
             }
         });
     } // <--- 這裡是 onCreate 結束的大括號！
@@ -120,15 +140,8 @@ public class HomeActivity extends AppCompatActivity {
         super.onResume();
         // 確保你的 memoList 和 adapter 已經在 onCreate 裡面初始化過了
         if (memoList != null && adapter != null) {
-
-            // 1. 把看守員(Adapter)正在盯著的箱子「清空」
-            memoList.clear();
-
-            // 2. 去檔案裡把最新的資料讀出來，並「全部倒進」這個箱子裡
-            memoList.addAll(FileUtils.readFromXML(this));
-
-            // 3. 拍拍看守員的肩膀，跟他說：「箱子裡的東西換囉，請重新整理畫面！」
-            adapter.notifyDataSetChanged();
+            memoList = FileUtils.readFromXML(this);
+            adapter.updateList(memoList); // 呼叫我們剛剛寫的神奇同步方法
         }
     }
 }

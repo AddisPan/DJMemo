@@ -8,14 +8,26 @@ import android.widget.CheckBox;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
+
+import java.util.ArrayList;
 import java.util.List;
 
-public class MemoAdapter extends RecyclerView.Adapter<MemoAdapter.MemoViewHolder> {
+public class MemoAdapter extends RecyclerView.Adapter<MemoAdapter.MemoViewHolder> implements android.widget.Filterable {
 
     private final List<Memo> memoList;
+    private List<Memo> memoListFull; // 🎯 新增：用來裝「全部資料」的備份清單
 
     public MemoAdapter(List<Memo> memoList) {
         this.memoList = memoList;
+        this.memoListFull = new ArrayList<>(memoList); // 複製一份作為備份
+    }
+
+    // 🎯 新增一個方法，讓 HomeActivity 資料改變時，可以同時更新「顯示用」跟「備份用」的清單
+    public void updateList(List<Memo> newList) {
+        this.memoList.clear();
+        this.memoList.addAll(newList);
+        this.memoListFull = new ArrayList<>(newList); // 備份也要一起更新！
+        notifyDataSetChanged();
     }
 
     @NonNull
@@ -90,5 +102,50 @@ public class MemoAdapter extends RecyclerView.Adapter<MemoAdapter.MemoViewHolder
             tvDate = itemView.findViewById(R.id.tv_date); // 或是 tv_time
             cbDelete = itemView.findViewById(R.id.cb_delete); // 綁定 CheckBo
         }
+    }
+
+    // ==========================================
+    // 🎯 實作 Filterable 介面的過濾邏輯
+    // ==========================================
+    @Override
+    public android.widget.Filter getFilter() {
+        return new android.widget.Filter() {
+            // 1. 這裡在背景執行過濾比對
+            @Override
+            protected FilterResults performFiltering(CharSequence constraint) {
+                List<Memo> filteredList = new ArrayList<>();
+
+                // 如果搜尋框是空的，就直接回傳完整的備份清單
+                if (constraint == null || constraint.length() == 0) {
+                    filteredList.addAll(memoListFull);
+                } else {
+                    // 把使用者打的字轉成小寫，避免大小寫找不對
+                    String filterPattern = constraint.toString().toLowerCase().trim();
+
+                    // 遍歷備份清單，比對 Title 或 Content 是否包含關鍵字
+                    for (Memo item : memoListFull) {
+                        boolean matchTitle = item.getTitle() != null && item.getTitle().toLowerCase().contains(filterPattern);
+                        boolean matchContent = item.getContent() != null && item.getContent().toLowerCase().contains(filterPattern);
+
+                        // 如果標題或內容有中，就加進結果清單
+                        if (matchTitle || matchContent) {
+                            filteredList.add(item);
+                        }
+                    }
+                }
+
+                FilterResults results = new FilterResults();
+                results.values = filteredList;
+                return results;
+            }
+
+            // 2. 把過濾完的結果放到畫面上
+            @Override
+            protected void publishResults(CharSequence constraint, FilterResults results) {
+                memoList.clear(); // 清空目前的畫面資料
+                memoList.addAll((List) results.values); // 塞入過濾後的結果
+                notifyDataSetChanged(); // 刷新畫面
+            }
+        };
     }
 }
