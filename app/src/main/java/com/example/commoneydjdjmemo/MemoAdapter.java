@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.CheckBox;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
@@ -36,29 +37,35 @@ public class MemoAdapter extends RecyclerView.Adapter<MemoAdapter.MemoViewHolder
         holder.tvContent.setText(memo.getContent());
         holder.tvDate.setText(memo.getTime());
 
-        // 3. 🎯 唯一且完美的點擊事件 (兩個 onClick 已經合體了！)
+        // ==========================================
+        // 🎯 新增：處理 CheckBox (防亂跳機制)
+        // ==========================================
+        // (1) 先把監聽器拔掉，避免受到之前回收的舊狀態影響
+        holder.cbDelete.setOnCheckedChangeListener(null);
+
+        // (2) 依照 Memo 的真實狀態，把 CheckBox 打勾或取消打勾
+        holder.cbDelete.setChecked(memo.isSelected());
+
+        // (3) 狀態設定好之後，再把監聽器裝回去！
+        holder.cbDelete.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            // 當使用者點擊 CheckBox 時，把狀態存回這筆 Memo 裡面
+            memo.setSelected(isChecked);
+        });
+        // ==========================================
+
+        // 3. 唯一且完美的點擊事件 (點擊整行跳轉編輯頁)
         holder.itemView.setOnClickListener(v -> {
-
-            // 👉 跟被點擊的 View (v) 借用 Context，解決紅字問題
             android.content.Context context = v.getContext();
-
-            // 保留你的任務 A：印出 Log
             android.util.Log.d("MemoClick", "使用者點擊了筆記：" + memo.getTitle());
-
-            // 👉 使用 getBindingAdapterPosition() 取得當下最正確的位置，解決黃字警告
             int currentPosition = holder.getBindingAdapterPosition();
 
-            // 打包資料跳轉到 EditorActivity
             Intent intent = new Intent(context, EditorActivity.class);
-
-            // 統一使用小寫標籤，對應我們剛剛改好的 EditorActivity
             intent.putExtra("title", memo.getTitle());
             intent.putExtra("content", memo.getContent());
             intent.putExtra("tag", memo.getTag());
             intent.putExtra("time", memo.getTime());
-            intent.putExtra("memo_position", currentPosition); // 傳送位置情報！
+            intent.putExtra("memo_position", currentPosition);
 
-            // 出發！
             context.startActivity(intent);
         });
     }
@@ -72,6 +79,7 @@ public class MemoAdapter extends RecyclerView.Adapter<MemoAdapter.MemoViewHolder
     public static class MemoViewHolder extends RecyclerView.ViewHolder {
 
         TextView tvTitle, tvContent, tvDate; // 宣告變數
+        CheckBox cbDelete; // 宣告
 
         public MemoViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -80,6 +88,7 @@ public class MemoAdapter extends RecyclerView.Adapter<MemoAdapter.MemoViewHolder
             tvTitle = itemView.findViewById(R.id.tv_title);
             tvContent = itemView.findViewById(R.id.tv_content);
             tvDate = itemView.findViewById(R.id.tv_date); // 或是 tv_time
+            cbDelete = itemView.findViewById(R.id.cb_delete); // 綁定 CheckBo
         }
     }
 }

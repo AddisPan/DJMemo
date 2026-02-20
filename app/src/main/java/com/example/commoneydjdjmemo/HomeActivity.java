@@ -74,6 +74,42 @@ public class HomeActivity extends AppCompatActivity {
             Intent intent = new Intent(HomeActivity.this, LegacyListActivity.class);
             startActivity(intent);
         });
+
+        // 1. 綁定剛剛新增的刪除按鈕
+        Button btnDeleteSelected = findViewById(R.id.btn_delete_selected);
+
+        // 2. 設定點擊事件
+        btnDeleteSelected.setOnClickListener(v -> {
+            boolean hasDeleted = false; // 用來記錄這次到底有沒有刪除東西
+
+            // 🚨 【超級重點】避坑指南：倒序迴圈！
+            // 為什麼要從最後一個 (size - 1) 往前檢查到 0？
+            // 因為如果從前面刪除，List 的長度會立刻縮水，後面的項目會往前遞補，
+            // 這時迴圈的 Index 就會大亂，甚至導致程式崩潰 (Crash)！
+            for (int i = memoList.size() - 1; i >= 0; i--) {
+                Memo currentMemo = memoList.get(i);
+
+                if (currentMemo.isSelected()) {
+                    memoList.remove(i); // 從清單中殺掉它！
+                    hasDeleted = true;  // 標記我們有刪除動作
+                }
+            }
+
+            // 3. 如果真的有刪除東西，就進行存檔與畫面更新
+            if (hasDeleted) {
+                // (1) 把最新的 (已經移除了項目的) 清單，重新存進 XML 裡覆蓋舊的
+                FileUtils.saveToXML(HomeActivity.this, memoList);
+
+                // (2) 告訴 Adapter：「資料變了，趕快重新整理畫面！」
+                adapter.notifyDataSetChanged();
+
+                // (3) 跳出小提示
+                android.widget.Toast.makeText(HomeActivity.this, "刪除成功！", android.widget.Toast.LENGTH_SHORT).show();
+            } else {
+                // 如果使用者什麼都沒勾就按刪除
+                android.widget.Toast.makeText(HomeActivity.this, "請先勾選要刪除的筆記", android.widget.Toast.LENGTH_SHORT).show();
+            }
+        });
     } // <--- 這裡是 onCreate 結束的大括號！
 
     // ========================================================
