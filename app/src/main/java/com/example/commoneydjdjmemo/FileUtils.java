@@ -33,6 +33,8 @@ public class FileUtils {
             serializer.startDocument("UTF-8", true);
             serializer.startTag("", "resources"); // 根目錄
 
+
+
             for (Memo memo : memoList) {
                 serializer.startTag("", "memo");
 
@@ -55,6 +57,14 @@ public class FileUtils {
                 serializer.startTag("", "tag");
                 serializer.text(memo.getTag() != null ? memo.getTag() : "");
                 serializer.endTag("", "tag");
+
+                // ==========================================
+                // 🎯 這是你要加的地方：寫入 isCompleted 狀態
+                // ==========================================
+                serializer.startTag("", "isCompleted");
+                serializer.text(String.valueOf(memo.isCompleted()));
+                serializer.endTag("", "isCompleted");
+                // ==========================================
 
                 serializer.endTag("", "memo");
             }
@@ -116,6 +126,9 @@ public class FileUtils {
                                 currentMemo.setTime(parser.nextText());
                             } else if ("tag".equals(tagName)) {
                                 currentMemo.setTag(parser.nextText());
+                            } else if ("isCompleted".equals(tagName)) {
+                                // 🎯 新增這個判斷：把字串轉回布林值 (true/false)
+                                currentMemo.setCompleted(Boolean.parseBoolean(parser.nextText()));
                             }
                         }
                         break;
