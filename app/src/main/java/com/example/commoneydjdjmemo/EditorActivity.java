@@ -7,6 +7,9 @@ import android.widget.Button;
 import android.widget.EditText;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.view.WindowCompat;
+import androidx.core.view.WindowInsetsCompat;
+import androidx.core.view.WindowInsetsControllerCompat;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -16,8 +19,8 @@ import java.util.List;
 public class EditorActivity extends AppCompatActivity {
 
     // 宣告元件
-    private EditText etTitle, etTag, etContent;
-    private Button btnSaveSp, btnSaveFile;
+    private EditText etTitle, etContent;
+    private Button btnBack, btnSave;
 
     // 記錄目前是第幾筆資料 (預設 -1 代表是按 + 號新增的)
     private int editPosition = -1;
@@ -27,19 +30,20 @@ public class EditorActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_editor); // 綁定介面
 
+        // 🎯 讓新增筆記的畫面也是沉浸式！
+        WindowUtils.enableImmersiveMode(this);
+
         // 1. 綁定 ID
         etTitle = findViewById(R.id.et_title);
-        etTag = findViewById(R.id.et_tag);
         etContent = findViewById(R.id.et_content);
-        btnSaveSp = findViewById(R.id.btn_save_sp);
-        btnSaveFile = findViewById(R.id.btn_save_file);
+        btnBack = findViewById(R.id.btn_back);
+        btnSave = findViewById(R.id.btn_save);
 
         // 2. 接收從 HomeActivity (包含 Adapter) 傳過來的包裹
         Intent intent = getIntent();
 
         // 統一使用小寫的 key 來接收資料 (對齊 MemoAdapter 裡的設定)
         String passedTitle = intent.getStringExtra("title");
-        String passedTag = intent.getStringExtra("tag");
         String passedContent = intent.getStringExtra("content");
 
         // 接收 position，如果沒收到 (代表是按+號進來的) 就預設為 -1
@@ -49,48 +53,30 @@ public class EditorActivity extends AppCompatActivity {
         if (passedTitle != null) {
             etTitle.setText(passedTitle);
         }
-        if (passedTag != null) {
-            etTag.setText(passedTag);
-        }
         if (passedContent != null) {
             etContent.setText(passedContent);
         }
 
         // ==========================================
-        // 4. 設定「儲存 (SP)」按鈕的點擊事件 (支援新增與修改)
+        // 4. 設定「返回」按鈕的點擊事件
         // ==========================================
-        btnSaveSp.setOnClickListener(new View.OnClickListener() {
+        btnBack.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                // 取得輸入內容並建立 Memo 物件
-                Memo memo = createMemoFromInput();
-
-                // 讀取現有的 SP 清單
-                List<Memo> currentList = SPUtils.getMemoList(EditorActivity.this);
-
-                // 判斷要「新增」還是「替換」
-                if (editPosition == -1) {
-                    currentList.add(0, memo); // 加到最前面
-                } else {
-                    currentList.set(editPosition, memo); // 替換舊資料
-                }
-
-                // 存回 SP 並關閉頁面
-                SPUtils.saveMemoList(EditorActivity.this, currentList);
-                finish();
+                finish(); // 直接關閉此 Activity
             }
         });
 
         // ==========================================
-        // 5. 設定「儲存 (File)」按鈕的點擊事件 (支援新增與修改)
+        // 5. 設定「儲存筆記」按鈕的點擊事件 (支援新增與修改)
         // ==========================================
-        btnSaveFile.setOnClickListener(new View.OnClickListener() {
+        btnSave.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 // 取得輸入內容並建立 Memo 物件
                 Memo memo = createMemoFromInput();
 
-                // 讀取現有的 File 清單
+                // 讀取現有的清單
                 List<Memo> currentList = FileUtils.readFromXML(EditorActivity.this);
 
                 // 判斷要「新增」還是「替換」
@@ -102,6 +88,7 @@ public class EditorActivity extends AppCompatActivity {
 
                 // 存回 XML 並關閉頁面
                 FileUtils.saveToXML(EditorActivity.this, currentList);
+                android.widget.Toast.makeText(EditorActivity.this, "筆記已儲存", android.widget.Toast.LENGTH_SHORT).show();
                 finish();
             }
         });
@@ -109,11 +96,10 @@ public class EditorActivity extends AppCompatActivity {
 
     /**
      * 這是一個小工具方法：把畫面上輸入的文字打包成一個 Memo 物件
-     * 這樣我們就不用在 SP 和 File 的按鈕裡面重複寫兩次一樣的程式碼了！
+     * 這樣我們就不用在儲存按鈕裡面重複寫一樣的程式碼了！
      */
     private Memo createMemoFromInput() {
         String title = etTitle.getText().toString();
-        String tag = etTag.getText().toString(); // 如果你還沒做 tag 輸入框，這行可能要先拿掉或給空字串
         String content = etContent.getText().toString();
 
         // 🎯 重構重點：動態取得當下時間
@@ -123,7 +109,6 @@ public class EditorActivity extends AppCompatActivity {
 
         Memo memo = new Memo();
         memo.setTitle(title);
-        memo.setTag(tag);
         memo.setContent(content);
         memo.setTime(currentDate); // 使用動態時間！
 

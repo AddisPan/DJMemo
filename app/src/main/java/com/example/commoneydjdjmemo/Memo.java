@@ -16,8 +16,6 @@ public class Memo implements Serializable {
     @Element(required = false)
     private String time;
 
-    @Element(required = false)
-    private String tag;
 
     @Element(required = false)
     private String title;
@@ -46,7 +44,6 @@ public class Memo implements Serializable {
         this.content = content;
         this.time = time;
 
-        this.tag = "一般";
         this.isCompleted = false;
         this.isSelected = false;
     }
@@ -60,8 +57,6 @@ public class Memo implements Serializable {
     public String getTime() { return time; }
     public void setTime(String time) { this.time = time; }
 
-    public String getTag() { return tag; }
-    public void setTag(String tag) { this.tag = tag; }
 
     public String getTitle() { return title; }
     public void setTitle(String title) { this.title = title; }

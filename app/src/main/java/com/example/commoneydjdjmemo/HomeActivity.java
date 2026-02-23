@@ -2,6 +2,9 @@ package com.example.commoneydjdjmemo; // 你的 package
 
 import android.os.Bundle;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.view.WindowCompat;
+import androidx.core.view.WindowInsetsCompat;
+import androidx.core.view.WindowInsetsControllerCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import android.content.Intent;
@@ -22,6 +25,12 @@ public class HomeActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home); // 2. 設定 XML
+
+        // ==========================================
+        // 🎯 UI 優化：開啟沉浸式模式 (隱藏系統導覽列)
+        // ==========================================
+        WindowUtils.enableImmersiveMode(this);
+        // ==========================================
 
         // 3. 綁定元件 (findViewById)
         rvMemo = findViewById(R.id.rv_memo);

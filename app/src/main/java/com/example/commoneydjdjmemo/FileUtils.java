@@ -53,10 +53,6 @@ public class FileUtils {
                 serializer.text(memo.getTime() != null ? memo.getTime() : "");
                 serializer.endTag("", "time");
 
-                // 標籤
-                serializer.startTag("", "tag");
-                serializer.text(memo.getTag() != null ? memo.getTag() : "");
-                serializer.endTag("", "tag");
 
                 // ==========================================
                 // 🎯 這是你要加的地方：寫入 isCompleted 狀態
@@ -124,8 +120,6 @@ public class FileUtils {
                             } else if ("date".equals(tagName)) {
                                 // 💡 為了救回舊資料，我們多判斷一個 "date"，以防舊檔案是用 date 存的
                                 currentMemo.setTime(parser.nextText());
-                            } else if ("tag".equals(tagName)) {
-                                currentMemo.setTag(parser.nextText());
                             } else if ("isCompleted".equals(tagName)) {
                                 // 🎯 新增這個判斷：把字串轉回布林值 (true/false)
                                 currentMemo.setCompleted(Boolean.parseBoolean(parser.nextText()));

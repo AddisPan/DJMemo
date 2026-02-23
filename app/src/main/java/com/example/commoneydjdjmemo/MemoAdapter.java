@@ -94,7 +94,6 @@ public class MemoAdapter extends RecyclerView.Adapter<MemoAdapter.MemoViewHolder
             memo.setSelected(isChecked);
         });
         // ==========================================
-
         // 3. 唯一且完美的點擊事件 (點擊整行跳轉編輯頁)
         holder.itemView.setOnClickListener(v -> {
             android.content.Context context = v.getContext();
@@ -104,7 +103,6 @@ public class MemoAdapter extends RecyclerView.Adapter<MemoAdapter.MemoViewHolder
             Intent intent = new Intent(context, EditorActivity.class);
             intent.putExtra("title", memo.getTitle());
             intent.putExtra("content", memo.getContent());
-            intent.putExtra("tag", memo.getTag());
             intent.putExtra("time", memo.getTime());
             intent.putExtra("memo_position", currentPosition);
 
