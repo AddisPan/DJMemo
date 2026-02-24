@@ -65,6 +65,16 @@ public class MemoAdapter extends RecyclerView.Adapter<MemoAdapter.MemoViewHolder
         holder.tvContent.setText(memo.getContent());
         holder.tvDate.setText(memo.getTime());
 
+        // 🎯 安全防護版：先檢查畫面上到底有沒有 tvTag 這個元件
+        if (holder.tvTag != null) {
+            if (memo.getTag() != null && !memo.getTag().isEmpty()) {
+                holder.tvTag.setVisibility(View.VISIBLE);
+                holder.tvTag.setText(memo.getTag());
+            } else {
+                holder.tvTag.setVisibility(View.GONE);
+            }
+        }
+
         // ==========================================
         // 🎯 新增：判斷 ViewType 來加上或移除「刪除線」
         // ==========================================
@@ -102,6 +112,7 @@ public class MemoAdapter extends RecyclerView.Adapter<MemoAdapter.MemoViewHolder
 
             Intent intent = new Intent(context, EditorActivity.class);
             intent.putExtra("title", memo.getTitle());
+            intent.putExtra("tag", memo.getTag());
             intent.putExtra("content", memo.getContent());
             intent.putExtra("time", memo.getTime());
             intent.putExtra("memo_position", currentPosition);
@@ -143,7 +154,7 @@ public class MemoAdapter extends RecyclerView.Adapter<MemoAdapter.MemoViewHolder
     // 修改 ViewHolder：這裡要宣告 TextView 並執行 findViewById
     public static class MemoViewHolder extends RecyclerView.ViewHolder {
 
-        TextView tvTitle, tvContent, tvDate; // 宣告變數
+        TextView tvTitle, tvTag, tvContent, tvDate; // 宣告變數
         CheckBox cbDelete; // 宣告
 
         public MemoViewHolder(@NonNull View itemView) {
@@ -151,6 +162,7 @@ public class MemoAdapter extends RecyclerView.Adapter<MemoAdapter.MemoViewHolder
 
             // 綁定 ID (請確認 item_memo.xml 裡的 ID 是這些)
             tvTitle = itemView.findViewById(R.id.tv_title);
+            tvTag = itemView.findViewById(R.id.tv_tag);
             tvContent = itemView.findViewById(R.id.tv_content);
             tvDate = itemView.findViewById(R.id.tv_date); // 或是 tv_time
             cbDelete = itemView.findViewById(R.id.cb_delete); // 綁定 CheckBo

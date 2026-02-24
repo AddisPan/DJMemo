@@ -48,6 +48,23 @@
         app:layout_constraintEnd_toEndOf="parent" />
 
     <EditText
+        android:id="@+id/et_tag"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="24dp"
+        android:layout_marginTop="16dp"
+        android:padding="16dp"
+        android:background="@drawable/bg_rounded_card"
+        android:elevation="2dp"
+        android:hint="輸入分類標籤 (例如：工作、生活)"
+        android:textColor="#1A1A1A"
+        android:textColorHint="#999999"
+        android:textSize="16sp"
+        app:layout_constraintTop_toBottomOf="@+id/et_title"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <EditText
         android:id="@+id/et_content"
         android:layout_width="0dp"
         android:layout_height="0dp"
@@ -62,26 +79,51 @@
         android:textColor="#333333"
         android:textColorHint="#999999"
         android:textSize="16sp"
-        app:layout_constraintTop_toBottomOf="@+id/et_title"
-        app:layout_constraintBottom_toTopOf="@+id/btn_save"
+        app:layout_constraintTop_toBottomOf="@+id/et_tag"
+        app:layout_constraintBottom_toTopOf="@+id/layout_buttons"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
-    <Button
-        android:id="@+id/btn_save"
+    <LinearLayout
+        android:id="@+id/layout_buttons"
         android:layout_width="0dp"
-        android:layout_height="56dp"
+        android:layout_height="wrap_content"
         android:layout_marginHorizontal="24dp"
-        android:layout_marginBottom="48dp"
-        android:text="儲存筆記"
-        android:textColor="#FFFFFF"
-        android:textSize="18sp"
-        android:textStyle="bold"
-        android:background="@drawable/bg_btn_primary"
-        android:elevation="6dp"
-        android:stateListAnimator="@null"
-        app:layout_constraintBottom_toBottomOf="parent"
+        android:layout_marginBottom="80dp"
+        android:orientation="horizontal"
+        android:clipToPadding="false"      android:paddingBottom="12dp"       app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/btn_save_xml"
+            android:layout_width="0dp"
+            android:layout_height="56dp"
+            android:layout_weight="1"
+            android:text="存入 XML"
+            android:textColor="#FFFFFF"
+            android:textSize="15sp"
+            android:textStyle="bold"
+            android:background="@drawable/bg_btn_primary"
+            android:elevation="6dp"
+            android:stateListAnimator="@null" />
+
+        <Space
+            android:layout_width="16dp"
+            android:layout_height="wrap_content" />
+
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/btn_save_sp"
+            android:layout_width="0dp"
+            android:layout_height="56dp"
+            android:layout_weight="1"
+            android:text="存入 SP(JSON)"
+            android:textColor="#FFFFFF"
+            android:textSize="15sp"
+            android:textStyle="bold"
+            android:background="@drawable/bg_btn_primary"
+            android:elevation="6dp"
+            android:stateListAnimator="@null" />
+    </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

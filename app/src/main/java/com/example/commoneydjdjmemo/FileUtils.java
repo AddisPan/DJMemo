@@ -43,6 +43,11 @@ public class FileUtils {
                 serializer.text(memo.getTitle() != null ? memo.getTitle() : "");
                 serializer.endTag("", "title");
 
+                // 標籤
+                serializer.startTag("", "tag");
+                serializer.text(memo.getTag() != null ? memo.getTag() : "");
+                serializer.endTag("", "tag");
+
                 // 內容
                 serializer.startTag("", "content");
                 serializer.text(memo.getContent() != null ? memo.getContent() : "");
@@ -113,7 +118,9 @@ public class FileUtils {
                             // 這裡一定要跟上面的 saveToXML 標籤名稱一模一樣！
                             if ("title".equals(tagName)) {
                                 currentMemo.setTitle(parser.nextText());
-                            } else if ("content".equals(tagName)) {
+                            } else if ("tag".equals(tagName)) {
+                                currentMemo.setTag(parser.nextText());
+                            }  else if ("content".equals(tagName)) {
                                 currentMemo.setContent(parser.nextText());
                             } else if ("time".equals(tagName)) {
                                 currentMemo.setTime(parser.nextText());

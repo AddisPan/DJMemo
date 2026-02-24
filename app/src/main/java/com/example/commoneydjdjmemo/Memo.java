@@ -16,9 +16,11 @@ public class Memo implements Serializable {
     @Element(required = false)
     private String time;
 
-
     @Element(required = false)
     private String title;
+
+    @Element(required = false)
+    private String tag;
 
     @Element(required = false)
     private String content;
@@ -38,9 +40,10 @@ public class Memo implements Serializable {
     // =========================================================
     // 原本你寫的建構子 (保留，給你在 EditorActivity 新增筆記時用)
     // =========================================================
-    public Memo(String title, String content, String time) {
+    public Memo(String title, String tag, String content, String time) {
         this.id = System.currentTimeMillis();
         this.title = title;
+        this.tag = tag;
         this.content = content;
         this.time = time;
 
@@ -57,9 +60,11 @@ public class Memo implements Serializable {
     public String getTime() { return time; }
     public void setTime(String time) { this.time = time; }
 
-
     public String getTitle() { return title; }
     public void setTitle(String title) { this.title = title; }
+
+    public String getTag() { return tag; }
+    public void setTag(String tag) { this.tag = tag; }
 
     public String getContent() { return content; }
     public void setContent(String content) { this.content = content; }
