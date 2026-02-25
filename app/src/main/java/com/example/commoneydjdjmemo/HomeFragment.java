@@ -84,8 +84,12 @@ public class HomeFragment extends Fragment {
 
         // 綁定剛剛新增的跳轉按鈕
         btnGoLegacy.setOnClickListener(v -> {
-            Intent intent = new Intent(requireContext(), LegacyListActivity.class);
-            startActivity(intent);
+            // 把畫框裡的 HomeFragment 替換成 LegacyListFragment
+            // addToBackStack(null) 讓你可以按手機返回鍵回到首頁！
+            requireActivity().getSupportFragmentManager().beginTransaction()
+                    .replace(R.id.fragment_container, new LegacyListFragment())
+                    .addToBackStack(null)
+                    .commit();
         });
 
         // 2. 設定點擊事件
