@@ -1,6 +1,7 @@
 package com.example.commoneydjdjmemo; // 你的 package
 
 import android.content.Intent;
+import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -104,20 +105,34 @@ public class MemoAdapter extends RecyclerView.Adapter<MemoAdapter.MemoViewHolder
             memo.setSelected(isChecked);
         });
         // ==========================================
-        // 3. 唯一且完美的點擊事件 (點擊整行跳轉編輯頁)
+        // 3. 唯一且完美的點擊事件 (改用 Fragment 與 Bundle 傳遞)
         holder.itemView.setOnClickListener(v -> {
-            android.content.Context context = v.getContext();
             android.util.Log.d("MemoClick", "使用者點擊了筆記：" + memo.getTitle());
-            int currentPosition = holder.getBindingAdapterPosition();
 
-            Intent intent = new Intent(context, EditorActivity.class);
-            intent.putExtra("title", memo.getTitle());
-            intent.putExtra("tag", memo.getTag());
-            intent.putExtra("content", memo.getContent());
-            intent.putExtra("time", memo.getTime());
-            intent.putExtra("memo_position", currentPosition);
+            // 1. 準備跳轉的 Fragment
+            EditorFragment editorFragment = new EditorFragment();
 
-            context.startActivity(intent);
+            // 2. 準備包裹 (Bundle)
+            Bundle bundle = new Bundle();
+            bundle.putString("title", memo.getTitle());
+            bundle.putString("tag", memo.getTag());
+            bundle.putString("content", memo.getContent());
+            bundle.putString("time", memo.getTime());
+
+            // 🎯 隱藏 Bug 修正：找出這篇筆記在「完整備份清單 (memoListFull)」裡的真實位置！
+            // 這樣不管有沒有使用搜尋過濾，存檔時絕對不會覆蓋錯人！
+            int realPosition = memoListFull.indexOf(memo);
+            bundle.putInt("memo_position", realPosition);
+
+            // 3. 把包裹交給 Fragment
+            editorFragment.setArguments(bundle);
+
+            // 4. 執行 Fragment 畫面切換
+            androidx.appcompat.app.AppCompatActivity activity = (androidx.appcompat.app.AppCompatActivity) v.getContext();
+            activity.getSupportFragmentManager().beginTransaction()
+                    .replace(R.id.fragment_container, editorFragment)
+                    .addToBackStack(null) // 允許按手機返回鍵回到首頁
+                    .commit();
         });
         // ==========================================
         // 🎯 第 4 關新增：長按事件 (切換 完成/未完成 狀態)

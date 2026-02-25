@@ -49,13 +49,11 @@ public class HomeFragment extends Fragment {
 
 
         // 6. 設定點擊事件：跳轉到 EditorActivity
-        btnAddNote.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                // 從 HomeActivity 跳轉到 EditorActivity
-                Intent intent = new Intent(requireContext(), EditorActivity.class);
-                startActivity(intent);
-            }
+        btnAddNote.setOnClickListener(v -> {
+            requireActivity().getSupportFragmentManager().beginTransaction()
+                    .replace(R.id.fragment_container, new EditorFragment())
+                    .addToBackStack(null)
+                    .commit();
         });
 
         // ========================================================
