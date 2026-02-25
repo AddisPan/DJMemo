@@ -1,0 +1,159 @@
+package com.example.commoneydjdjmemo;
+
+import android.content.Intent;
+import android.os.Bundle;
+import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.Button;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+public class HomeFragment extends Fragment {
+
+    // 1. 從 HomeActivity 搬過來的變數宣告
+    private RecyclerView rvMemo;
+    private MemoAdapter adapter;
+    private List<Memo> memoList = new ArrayList<>();
+
+    public HomeFragment() {
+        // Fragment 必須保留一個空的建構子
+    }
+
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        // 2. 先把畫布充氣 (Inflate) 出來，存成 view
+        View view = inflater.inflate(R.layout.fragment_home, container, false);
+
+        // 3. 綁定元件 (使用你真實的 ID，並且前面加上 "view.")
+        rvMemo = view.findViewById(R.id.rv_memo);
+        Button btnAddNote = view.findViewById(R.id.btn_add_note);
+        Button btnGoLegacy = view.findViewById(R.id.btn_go_legacy);
+        Button btnDeleteSelected = view.findViewById(R.id.btn_delete_selected);
+        androidx.appcompat.widget.SearchView searchView = view.findViewById(R.id.search_view);
+
+        // 4. 設定 RecyclerView
+        // 🌟 這裡套用第一招心法：把 this 改成 requireContext()
+        rvMemo.setLayoutManager(new LinearLayoutManager(requireContext()));
+        adapter = new MemoAdapter(memoList);
+        rvMemo.setAdapter(adapter);
+
+        // ==========================================
+        // 下一步：我們要開始把點擊事件搬進來這裡！
+        // ==========================================
+
+
+        // 6. 設定點擊事件：跳轉到 EditorActivity
+        btnAddNote.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // 從 HomeActivity 跳轉到 EditorActivity
+                Intent intent = new Intent(requireContext(), EditorActivity.class);
+                startActivity(intent);
+            }
+        });
+
+        // ========================================================
+        // 👇 嘉實 API Gson 測試代碼 (繼續保留在背景幫我們測試) 👇
+        // ========================================================
+        String mockJson = "{\n" +
+                "\"data\": {\n" +
+                "\"Glynn\": {\"gender\": \"M\", \"age\": 45, \"likeCat\": false},\n" +
+                "\"Cindy\": {\"gender\": \"F\", \"age\": 36, \"likeCat\": true},\n" +
+                "\"Morris\": {\"gender\": \"M\", \"age\": 40, \"likeCat\": false},\n" +
+                "\"Robert\": {\"gender\": \"M\", \"age\": 41, \"likeCat\": true}\n" +
+                "}\n" +
+                "}";
+
+        Map<String, UserData> parsedData = JsonObjectUtility.readJsonStringToObject(mockJson);
+
+        if (parsedData != null) {
+            for (Map.Entry<String, UserData> entry : parsedData.entrySet()) {
+                String name = entry.getKey();
+                UserData userData = entry.getValue();
+                android.util.Log.d("GsonTest", "解析成功 -> 名字: " + name + ", 資料: " + userData.toString());
+            }
+        } else {
+            android.util.Log.e("GsonTest", "解析失敗，資料為空！");
+        }
+
+        // 綁定剛剛新增的跳轉按鈕
+        btnGoLegacy.setOnClickListener(v -> {
+            Intent intent = new Intent(requireContext(), LegacyListActivity.class);
+            startActivity(intent);
+        });
+
+        // 2. 設定點擊事件
+        btnDeleteSelected.setOnClickListener(v -> {
+            boolean hasDeleted = false; // 用來記錄這次到底有沒有刪除東西
+
+            // 🚨 【超級重點】避坑指南：倒序迴圈！
+            // 為什麼要從最後一個 (size - 1) 往前檢查到 0？
+            // 因為如果從前面刪除，List 的長度會立刻縮水，後面的項目會往前遞補，
+            // 這時迴圈的 Index 就會大亂，甚至導致程式崩潰 (Crash)！
+            for (int i = memoList.size() - 1; i >= 0; i--) {
+                Memo currentMemo = memoList.get(i);
+
+                if (currentMemo.isSelected()) {
+                    memoList.remove(i); // 從清單中殺掉它！
+                    hasDeleted = true;  // 標記我們有刪除動作
+                }
+            }
+
+            // 3. 如果真的有刪除東西，就進行存檔與畫面更新
+            if (hasDeleted) {
+                // (1) 把最新的 (已經移除了項目的) 清單，重新存進 XML 裡覆蓋舊的
+                FileUtils.saveToXML(requireContext(), memoList);
+
+                adapter.updateList(memoList); // 一樣，呼叫神奇同步方法確保備份清單也被更新
+
+                // (3) 跳出小提示
+                android.widget.Toast.makeText(requireContext(), "刪除成功！", android.widget.Toast.LENGTH_SHORT).show();
+            } else {
+                // 如果使用者什麼都沒勾就按刪除
+                android.widget.Toast.makeText(requireContext(), "請先勾選要刪除的筆記", android.widget.Toast.LENGTH_SHORT).show();
+            }
+        });
+
+        // ==========================================
+        // 🎯 綁定 SearchView 搜尋功能
+        // ==========================================
+
+        searchView.setOnQueryTextListener(new androidx.appcompat.widget.SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String query) {
+                return false; // 按下鍵盤的「搜尋」鍵時要做的事 (我們不需要，因為我們邊打字邊搜)
+            }
+
+            @Override
+            public boolean onQueryTextChange(String newText) {
+                // 當搜尋框的文字改變時，立刻叫 Adapter 去過濾資料！
+                if (adapter != null) {
+                    adapter.getFilter().filter(newText);
+                }
+                return true;
+            }
+        });
+
+        // 5. 記得最後是回傳 view
+        return view;
+    }
+
+    // ========================================================
+    // onResume 方法 (搬過來，並套用心法微調)
+    // ========================================================
+    @Override
+    public void onResume() {
+        super.onResume();
+        if (memoList != null && adapter != null) {
+            // 🌟 這裡套用第二招心法：把 this 改成 requireContext()
+            memoList = FileUtils.readFromXML(requireContext());
+            adapter.updateList(memoList);
+        }
+    }
+}
