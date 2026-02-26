@@ -62,8 +62,8 @@ public class EditorFragment extends Fragment {
             Memo memo = createMemoFromInput();
             List<Memo> currentList = FileUtils.readFromXML(requireContext());
 
-            saveToList(currentList, memo);
-            FileUtils.saveToXML(requireContext(), currentList);
+            // 🌟 只需要這一行！把資料跟位置交給大管家，管家會存檔並廣播給首頁！
+            KeepDataRepository.getInstance().saveMemo(requireContext(), memo, editPosition);
 
             Toast.makeText(requireContext(), "已存入 XML", Toast.LENGTH_SHORT).show();
             requireActivity().getSupportFragmentManager().popBackStack(); // 存檔後退回首頁
