@@ -37,6 +37,15 @@ public class HomeFragment extends Fragment implements KeepDataRepository.OnDataC
         Button btnDeleteSelected = view.findViewById(R.id.btn_delete_selected);
         androidx.appcompat.widget.SearchView searchView = view.findViewById(R.id.search_view);
 
+        // 1. 透過內建的 ID，把 SearchView 裡面的「真正輸入框」挖出來
+        android.widget.EditText searchEditText = searchView.findViewById(androidx.appcompat.R.id.search_src_text);
+
+        // 2. 把使用者打進去的字體顏色改成「純黑色」 (超明顯)
+        searchEditText.setTextColor(android.graphics.Color.BLACK);
+
+        // 3. 把「搜尋標題或內容...」這個提示字的顏色，改成「較深的灰色」 (避免太透明)
+        searchEditText.setHintTextColor(android.graphics.Color.parseColor("#757575")); // 你也可以換成你喜歡的色碼
+
         // 4. 設定 RecyclerView (管家連線版)
         rvMemo.setLayoutManager(new LinearLayoutManager(requireContext()));
 
