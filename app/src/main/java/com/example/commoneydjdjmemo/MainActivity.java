@@ -1,9 +1,6 @@
-package com.example.commoneydjdjmemo; // 你的 package
+package com.example.commoneydjdjmemo; // 記得保留你最上面的 package 宣告喔！
 
-import android.content.Intent;
 import android.os.Bundle;
-import android.view.View;
-import android.widget.Button;
 import androidx.appcompat.app.AppCompatActivity;
 
 public class MainActivity extends AppCompatActivity {
@@ -12,23 +9,14 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        // 1. 設定畫面 (現在這個 XML 裡面已經有輸入框跟按鈕了)
+        // 1. 設定畫面 (現在這個 XML 裡面只剩下一個空畫框 FragmentContainerView)
         setContentView(R.layout.activity_main);
 
-        // 2. 綁定按鈕 (直接使用 findViewById)
-        Button btnLogin = findViewById(R.id.btn_login);
-
-        // 3. 設定點擊事件
-        btnLogin.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                // 跳轉到 HomeActivity (客廳)
-                Intent intent = new Intent(MainActivity.this, HomeActivity.class);
-                startActivity(intent);
-
-                // 關閉 MainActivity (警衛室)，這樣按返回鍵才不會又退回登入頁
-                finish();
-            }
-        });
+        // 2. 判斷如果是第一次開啟，就把 LoginFragment 塞進畫框裡！
+        if (savedInstanceState == null) {
+            getSupportFragmentManager().beginTransaction()
+                    .replace(R.id.login_fragment_container, new LoginFragment())
+                    .commit();
+        }
     }
 }
