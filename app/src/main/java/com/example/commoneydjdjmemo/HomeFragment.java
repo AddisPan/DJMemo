@@ -14,7 +14,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-public class HomeFragment extends Fragment {
+public class HomeFragment extends Fragment implements KeepDataRepository.OnDataChangeListener {
 
     // 1. 從 HomeActivity 搬過來的變數宣告
     private RecyclerView rvMemo;
@@ -37,11 +37,27 @@ public class HomeFragment extends Fragment {
         Button btnDeleteSelected = view.findViewById(R.id.btn_delete_selected);
         androidx.appcompat.widget.SearchView searchView = view.findViewById(R.id.search_view);
 
-        // 4. 設定 RecyclerView
-        // 🌟 這裡套用第一招心法：把 this 改成 requireContext()
+        // 1. 透過內建的 ID，把 SearchView 裡面的「真正輸入框」挖出來
+        android.widget.EditText searchEditText = searchView.findViewById(androidx.appcompat.R.id.search_src_text);
+
+        // 2. 把使用者打進去的字體顏色改成「純黑色」 (超明顯)
+        searchEditText.setTextColor(android.graphics.Color.BLACK);
+
+        // 3. 把「搜尋標題或內容...」這個提示字的顏色，改成「較深的灰色」 (避免太透明)
+        searchEditText.setHintTextColor(android.graphics.Color.parseColor("#757575")); // 你也可以換成你喜歡的色碼
+
+        // 4. 設定 RecyclerView (管家連線版)
         rvMemo.setLayoutManager(new LinearLayoutManager(requireContext()));
-        adapter = new MemoAdapter(memoList);
+
+        // 🌟 步驟 3-1: 向管家註冊，表示 HomeFragment 想收聽廣播
+        KeepDataRepository.getInstance().addListener(this);
+
+        // 🌟 步驟 3-2: 先拿一個空的 List 給 Adapter 初始化
+        adapter = new MemoAdapter(new ArrayList<>());
         rvMemo.setAdapter(adapter);
+
+        // 🌟 步驟 3-3: 呼叫管家去讀取資料 (管家讀完會自動觸發最下面的 onDataChanged！)
+        KeepDataRepository.getInstance().loadData(requireContext());
 
         // ==========================================
         // 下一步：我們要開始把點擊事件搬進來這裡！
@@ -152,10 +168,28 @@ public class HomeFragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
-        if (memoList != null && adapter != null) {
-            // 🌟 這裡套用第二招心法：把 this 改成 requireContext()
-            memoList = FileUtils.readFromXML(requireContext());
-            adapter.updateList(memoList);
+        // 既然有管家了，就不用自己去讀 XML 檔案啦！
+        // 確保每次從編輯頁退回來時，直接跟管家拿「最新的帳本」來刷新畫面
+        if (adapter != null && KeepDataRepository.getInstance().getMemoList() != null) {
+            adapter.updateList(KeepDataRepository.getInstance().getMemoList());
         }
+    }
+
+    @Override
+    public void onDataChanged(List<Memo> newList) {
+        // 當收到管家廣播時，直接把新資料交給 Adapter 去刷新畫面！
+        if (adapter != null) {
+            adapter.updateList(newList);
+        }
+    }
+
+    // ========================================================
+    // 🌟 步驟 4: 畫面銷毀時，取消註冊廣播
+    // ========================================================
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        // 退出廣播群組，減輕管家的負擔
+        KeepDataRepository.getInstance().removeListener(this);
     }
 }
