@@ -3,19 +3,25 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:padding="16dp">
+    android:padding="16dp"
+    android:background="#FFFFFF"
+    android:clickable="true"
+    android:focusable="true"> <!-- 加入背景與點擊攔截，防止點到下一層 -->
 
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="舊版 ListView 測試頁 (讀取 SP)"
+        android:text="舊版 ListView 測試頁 (讀取 SP / JSON)"
         android:textSize="20sp"
         android:textStyle="bold"
-        android:layout_marginBottom="16dp"/>
+        android:layout_marginBottom="16dp"
+        android:textColor="#333333"/>
 
     <ListView
         android:id="@+id/list_view_legacy"
         android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+        android:layout_height="match_parent"
+        android:divider="@android:color/darker_gray"
+        android:dividerHeight="0.5dp"/>
 
 </LinearLayout>

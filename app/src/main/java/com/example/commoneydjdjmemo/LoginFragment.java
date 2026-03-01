@@ -1,4 +1,4 @@
-package com.example.commoneydjdjmemo; // 確認你的 package 名稱
+package com.example.commoneydjdjmemo;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -10,33 +10,39 @@ import android.widget.EditText;
 import android.widget.Toast;
 import androidx.fragment.app.Fragment;
 
+/**
+ * 角色: 用戶登入介面 Fragment
+ * 
+ * 責任:
+ * - 提供帳號密碼輸入欄位。
+ * - 驗證登入資訊 (目前為範例邏輯：帳號 admin / 密碼 1234)。
+ * - 登入成功後跳轉至 HomeActivity (主頁面)。
+ * 
+ * 需求對應:
+ * - 符合需求 5：登入成功後跳轉到工作清單頁。
+ */
 public class LoginFragment extends Fragment {
 
-    public LoginFragment() {
-        // 必須要有空建構子
-    }
+    public LoginFragment() {}
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        // 1. 把剛剛搬好的登入畫布充氣出來
         View view = inflater.inflate(R.layout.fragment_login, container, false);
 
-        // 2. 綁定元件 (記得前面要加 view.)
         EditText etAccount = view.findViewById(R.id.et_account);
         EditText etPassword = view.findViewById(R.id.et_password);
         Button btnLogin = view.findViewById(R.id.btn_login);
 
-        // 3. 設定登入按鈕的點擊事件 (加入你說的 admin 1234 判斷)
         btnLogin.setOnClickListener(v -> {
             String account = etAccount.getText().toString();
             String password = etPassword.getText().toString();
 
-            if ("admin".equals(account) && "1234".equals(password)) {
-                // 帳密正確，跳轉到 HomeActivity (客廳)
-                Intent intent = new Intent(requireActivity(), HomeActivity.class);
+            // 簡易驗證邏輯
+            if ("addis".equals(account) && "1234".equals(password)) {
+                Toast.makeText(requireContext(), "登入成功！", Toast.LENGTH_SHORT).show();
+                Intent intent = new Intent(getActivity(), HomeActivity.class);
                 startActivity(intent);
-                // 關閉外層的 MainActivity，避免按返回鍵又回到登入頁
-                requireActivity().finish();
+                requireActivity().finish(); // 銷毀登入頁，防止返回
             } else {
                 Toast.makeText(requireContext(), "帳號或密碼錯誤", Toast.LENGTH_SHORT).show();
             }

@@ -1,230 +1,159 @@
-package com.example.commoneydjdjmemo; // 你的 package
+package com.example.commoneydjdjmemo;
 
-import android.content.Intent;
+import android.graphics.Paint;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CheckBox;
 import android.widget.TextView;
+import android.widget.Toast;
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.ArrayList;
 import java.util.List;
 
+/* 
+ * 角色: RecyclerView Adapter
+ * 符合需求: 
+ * - 兩種 ViewType 顯示 (完成/未完成)
+ * - 支援勾選記錄 (isSelected)
+ * - 長按切換完成狀態
+ */
 public class MemoAdapter extends RecyclerView.Adapter<MemoAdapter.MemoViewHolder> implements android.widget.Filterable {
-
     private final List<Memo> memoList;
-    private List<Memo> memoListFull; // 🎯 新增：用來裝「全部資料」的備份清單
-
+    private List<Memo> memoListFull;
     private static final int TYPE_NORMAL = 0;
     private static final int TYPE_COMPLETED = 1;
 
     public MemoAdapter(List<Memo> memoList) {
         this.memoList = memoList;
-        this.memoListFull = new ArrayList<>(memoList); // 複製一份作為備份
+        this.memoListFull = new ArrayList<>(memoList);
     }
 
     @Override
     public int getItemViewType(int position) {
-        Memo memo = memoList.get(position);
-        if (memo.isCompleted()) {
-            return TYPE_COMPLETED;
-        } else {
-            return TYPE_NORMAL;
-        }
+        return memoList.get(position).isCompleted() ? TYPE_COMPLETED : TYPE_NORMAL;
     }
 
-    // 🎯 新增一個方法，讓 HomeActivity 資料改變時，可以同時更新「顯示用」跟「備份用」的清單
     public void updateList(List<Memo> newList) {
         this.memoList.clear();
         this.memoList.addAll(newList);
-        this.memoListFull = new ArrayList<>(newList); // 備份也要一起更新！
+        this.memoListFull = new ArrayList<>(newList);
         notifyDataSetChanged();
     }
 
     @NonNull
     @Override
     public MemoViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view;
-        if (viewType == TYPE_COMPLETED) {
-            view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_memo_done, parent, false);
-        } else {
-            view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_memo, parent, false);
-        }
+        // 根據狀態選擇佈局
+        int layoutId = (viewType == TYPE_COMPLETED) ? R.layout.item_memo_done : R.layout.item_memo;
+        View view = LayoutInflater.from(parent.getContext()).inflate(layoutId, parent, false);
         return new MemoViewHolder(view);
     }
 
     @Override
     public void onBindViewHolder(@NonNull MemoViewHolder holder, int position) {
-        // 1. 取得現在這一行的資料
         Memo memo = memoList.get(position);
 
-        // 2. 將資料設定到畫面上 (TextView)
+        // 基本資料綁定
         holder.tvTitle.setText(memo.getTitle());
+        if (holder.tvTag != null) holder.tvTag.setText(memo.getTag());
         holder.tvContent.setText(memo.getContent());
         holder.tvDate.setText(memo.getTime());
 
-        // 🎯 安全防護版：先檢查畫面上到底有沒有 tvTag 這個元件
-        if (holder.tvTag != null) {
-            if (memo.getTag() != null && !memo.getTag().isEmpty()) {
-                holder.tvTag.setVisibility(View.VISIBLE);
-                holder.tvTag.setText(memo.getTag());
-            } else {
-                holder.tvTag.setVisibility(View.GONE);
-            }
-        }
-
-        // ==========================================
-        // 🎯 新增：判斷 ViewType 來加上或移除「刪除線」
-        // ==========================================
-        if (getItemViewType(position) == TYPE_COMPLETED) {
-            // 如果是「已完成」，幫標題和內容加上刪除線
-            holder.tvTitle.setPaintFlags(holder.tvTitle.getPaintFlags() | android.graphics.Paint.STRIKE_THRU_TEXT_FLAG);
-            holder.tvContent.setPaintFlags(holder.tvContent.getPaintFlags() | android.graphics.Paint.STRIKE_THRU_TEXT_FLAG);
+        // 處理「已完成」的視覺效果 (加刪除線)
+        if (memo.isCompleted()) {
+            holder.tvTitle.setPaintFlags(holder.tvTitle.getPaintFlags() | Paint.STRIKE_THRU_TEXT_FLAG);
+            holder.tvTitle.setTextColor(0xFFAAAAAA); // 變灰色
         } else {
-            // 如果是「一般」，一定要把刪除線移除 (防止 RecyclerView 回收時污染到正常筆記)
-            holder.tvTitle.setPaintFlags(holder.tvTitle.getPaintFlags() & (~android.graphics.Paint.STRIKE_THRU_TEXT_FLAG));
-            holder.tvContent.setPaintFlags(holder.tvContent.getPaintFlags() & (~android.graphics.Paint.STRIKE_THRU_TEXT_FLAG));
+            holder.tvTitle.setPaintFlags(holder.tvTitle.getPaintFlags() & (~Paint.STRIKE_THRU_TEXT_FLAG));
+            holder.tvTitle.setTextColor(0xFF333333); // 恢復黑色
         }
-        // ==========================================
 
-        // ==========================================
-        // 🎯 處理 CheckBox (防亂跳機制)
-        // ==========================================
-        // (1) 先把監聽器拔掉，避免受到之前回收的舊狀態影響
+        // 複選框：記錄勾選狀態 (需求 2)
         holder.cbDelete.setOnCheckedChangeListener(null);
-
-        // (2) 依照 Memo 的真實狀態，把 CheckBox 打勾或取消打勾
         holder.cbDelete.setChecked(memo.isSelected());
-
-        // (3) 狀態設定好之後，再把監聽器裝回去！
         holder.cbDelete.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            // 當使用者點擊 CheckBox 時，把狀態存回這筆 Memo 裡面
             memo.setSelected(isChecked);
         });
-        // ==========================================
-        // 3. 唯一且完美的點擊事件 (改用 Fragment 與 Bundle 傳遞)
-        holder.itemView.setOnClickListener(v -> {
-            android.util.Log.d("MemoClick", "使用者點擊了筆記：" + memo.getTitle());
 
-            // 1. 準備跳轉的 Fragment
-            EditorFragment editorFragment = new EditorFragment();
+        // 點擊 Item 進入編輯 (需求 3)
+        holder.itemView.setOnClickListener(v -> openEditor(holder.itemView.getContext(), memo, position));
 
-            // 2. 準備包裹 (Bundle)
-            Bundle bundle = new Bundle();
-            bundle.putString("title", memo.getTitle());
-            bundle.putString("tag", memo.getTag());
-            bundle.putString("content", memo.getContent());
-            bundle.putString("time", memo.getTime());
-
-            // 🎯 隱藏 Bug 修正：找出這篇筆記在「完整備份清單 (memoListFull)」裡的真實位置！
-            // 這樣不管有沒有使用搜尋過濾，存檔時絕對不會覆蓋錯人！
-            int realPosition = memoListFull.indexOf(memo);
-            bundle.putInt("memo_position", realPosition);
-
-            // 3. 把包裹交給 Fragment
-            editorFragment.setArguments(bundle);
-
-            // 4. 執行 Fragment 畫面切換
-            androidx.appcompat.app.AppCompatActivity activity = (androidx.appcompat.app.AppCompatActivity) v.getContext();
-            activity.getSupportFragmentManager().beginTransaction()
-                    .replace(R.id.fragment_container, editorFragment)
-                    .addToBackStack(null) // 允許按手機返回鍵回到首頁
-                    .commit();
-        });
-        // ==========================================
-        // 🎯 第 4 關新增：長按事件 (切換 完成/未完成 狀態)
-        // ==========================================
+        // 長按切換完成狀態 (需求 1.1)
         holder.itemView.setOnLongClickListener(v -> {
-
-            // 1. 切換狀態 (原本是完成就變未完成，原本未完成就變完成)
-            boolean isCurrentlyDone = memo.isCompleted();
-            memo.setCompleted(!isCurrentlyDone);
-
-            // 2. 告訴 Adapter：「這個位置的資料變了，請重新渲染這單獨一行！」
-            // 系統就會重新執行 getItemViewType，並自動切換成灰色或白色的 XML 佈局
-            notifyItemChanged(holder.getBindingAdapterPosition());
-
-            // ==========================================
-            // 🎯 新增這行：把更新後的整份備份清單存進 XML 裡永久保存！
-            // ==========================================
-            FileUtils.saveToXML(v.getContext(), memoListFull);
-
-            // 3. 彈出小提示讓使用者知道發生什麼事
-            String status = memo.isCompleted() ? "已標記為完成" : "已取消完成";
-            android.widget.Toast.makeText(v.getContext(), status, android.widget.Toast.LENGTH_SHORT).show();
-
-            // 回傳 true 代表我們已經「消耗」掉這個長按事件了，不會再觸發上面的短按事件！
+            memo.setCompleted(!memo.isCompleted());
+            // 存入 XML 並通知廣播
+            KeepDataRepository.getInstance().saveMemo(holder.itemView.getContext(), memo, position);
+            Toast.makeText(holder.itemView.getContext(), memo.isCompleted() ? "任務已完成" : "任務恢復中", Toast.LENGTH_SHORT).show();
             return true;
         });
-    }// <--- 這裡是整個 onBindViewHolder 結束的大括號！
-
-    @Override
-    public int getItemCount() {
-        return memoList.size();
     }
 
-    // 修改 ViewHolder：這裡要宣告 TextView 並執行 findViewById
-    public static class MemoViewHolder extends RecyclerView.ViewHolder {
+    private void openEditor(android.content.Context context, Memo memo, int position) {
+        if (context instanceof AppCompatActivity) {
+            Bundle bundle = new Bundle();
+            bundle.putString("title", memo.getTitle());
+            bundle.putString("content", memo.getContent());
+            bundle.putString("tag", memo.getTag());
+            bundle.putInt("memo_position", position);
+            
+            EditorFragment editor = new EditorFragment();
+            editor.setArguments(bundle);
+            
+            ((AppCompatActivity) context).getSupportFragmentManager().beginTransaction()
+                    .add(R.id.fragment_container, editor)
+                    .addToBackStack(null)
+                    .commit();
+        }
+    }
 
-        TextView tvTitle, tvTag, tvContent, tvDate; // 宣告變數
-        CheckBox cbDelete; // 宣告
+    @Override
+    public int getItemCount() { return memoList.size(); }
+
+    public static class MemoViewHolder extends RecyclerView.ViewHolder {
+        TextView tvTitle, tvTag, tvContent, tvDate;
+        CheckBox cbDelete;
 
         public MemoViewHolder(@NonNull View itemView) {
             super(itemView);
-
-            // 綁定 ID (請確認 item_memo.xml 裡的 ID 是這些)
             tvTitle = itemView.findViewById(R.id.tv_title);
-            tvTag = itemView.findViewById(R.id.tv_tag);
+            tvTag = itemView.findViewById(R.id.tv_tag); // 注意：item_memo_done 可能沒有這個
             tvContent = itemView.findViewById(R.id.tv_content);
-            tvDate = itemView.findViewById(R.id.tv_date); // 或是 tv_time
-            cbDelete = itemView.findViewById(R.id.cb_delete); // 綁定 CheckBo
+            tvDate = itemView.findViewById(R.id.tv_date);
+            cbDelete = itemView.findViewById(R.id.cb_delete);
         }
     }
 
-    // ==========================================
-    // 🎯 實作 Filterable 介面的過濾邏輯
-    // ==========================================
     @Override
     public android.widget.Filter getFilter() {
         return new android.widget.Filter() {
-            // 1. 這裡在背景執行過濾比對
             @Override
             protected FilterResults performFiltering(CharSequence constraint) {
-                List<Memo> filteredList = new ArrayList<>();
-
-                // 如果搜尋框是空的，就直接回傳完整的備份清單
+                List<Memo> filtered = new ArrayList<>();
                 if (constraint == null || constraint.length() == 0) {
-                    filteredList.addAll(memoListFull);
+                    filtered.addAll(memoListFull);
                 } else {
-                    // 把使用者打的字轉成小寫，避免大小寫找不對
-                    String filterPattern = constraint.toString().toLowerCase().trim();
-
-                    // 遍歷備份清單，比對 Title 或 Content 是否包含關鍵字
-                    for (Memo item : memoListFull) {
-                        boolean matchTitle = item.getTitle() != null && item.getTitle().toLowerCase().contains(filterPattern);
-                        boolean matchContent = item.getContent() != null && item.getContent().toLowerCase().contains(filterPattern);
-
-                        // 如果標題或內容有中，就加進結果清單
-                        if (matchTitle || matchContent) {
-                            filteredList.add(item);
+                    String searchText = constraint.toString().toLowerCase();
+                    for (Memo memo : memoListFull) {
+                        if ((memo.getTitle() != null && memo.getTitle().toLowerCase().contains(searchText)) ||
+                            (memo.getContent() != null && memo.getContent().toLowerCase().contains(searchText))) {
+                            filtered.add(memo);
                         }
                     }
                 }
-
                 FilterResults results = new FilterResults();
-                results.values = filteredList;
+                results.values = filtered;
                 return results;
             }
-
-            // 2. 把過濾完的結果放到畫面上
             @Override
             protected void publishResults(CharSequence constraint, FilterResults results) {
-                memoList.clear(); // 清空目前的畫面資料
-                memoList.addAll((List) results.values); // 塞入過濾後的結果
-                notifyDataSetChanged(); // 刷新畫面
+                memoList.clear();
+                if (results.values != null) memoList.addAll((List<Memo>) results.values);
+                notifyDataSetChanged();
             }
         };
     }

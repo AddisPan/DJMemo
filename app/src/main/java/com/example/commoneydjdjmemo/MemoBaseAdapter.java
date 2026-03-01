@@ -8,11 +8,20 @@ import android.widget.BaseAdapter;
 import android.widget.TextView;
 import java.util.List;
 
-// 繼承老牌的 BaseAdapter
+/**
+ * 角色: 舊版 ListView 的轉接器 (BaseAdapter)
+ * 
+ * 責任:
+ * - 實作 ListView 的 getView() 方法，負責項目的 UI 繪製。
+ * - 配合 LegacyListFragment 展示傳統的資料呈現方式。
+ * 
+ * 業界標準:
+ * - 實作基本的 View 複用邏輯，透過 convertView 減少 Inflation。
+ */
 public class MemoBaseAdapter extends BaseAdapter {
 
-    private Context context;
-    private List<Memo> memoList;
+    private final Context context;
+    private final List<Memo> memoList;
 
     public MemoBaseAdapter(Context context, List<Memo> memoList) {
         this.context = context;
@@ -21,40 +30,36 @@ public class MemoBaseAdapter extends BaseAdapter {
 
     @Override
     public int getCount() {
-        // 告訴 ListView 總共有幾筆資料
-        return memoList != null ? memoList.size() : 0;
+        return memoList.size();
     }
 
     @Override
     public Object getItem(int position) {
-        // 取得特定位置的資料
         return memoList.get(position);
     }
 
     @Override
     public long getItemId(int position) {
-        return position;
+        return memoList.get(position).getId();
     }
 
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
-        // 這是 ListView 的核心：把資料塞進 XML 畫面裡
-
-        // 1. 如果畫面是空的，就去載入我們剛剛畫的 item_memo_legacy.xml
+        // 1. 複用 View 邏輯：如果 convertView 已經存在，就不要重新 Inflate
         if (convertView == null) {
             convertView = LayoutInflater.from(context).inflate(R.layout.item_memo_legacy, parent, false);
         }
 
-        // 2. 綁定裡面的 TextView
+        // 2. 綁定 UI 控制項
         TextView tvTitle = convertView.findViewById(R.id.tv_legacy_title);
         TextView tvTime = convertView.findViewById(R.id.tv_legacy_time);
 
-        // 3. 拿出這筆資料
+        // 3. 填入資料
         Memo memo = memoList.get(position);
-
-        // 4. 把字塞進去
-        tvTitle.setText(memo.getTitle());
-        tvTime.setText(memo.getTime());
+        if (memo != null) {
+            tvTitle.setText(memo.getTitle());
+            tvTime.setText(memo.getTime());
+        }
 
         return convertView;
     }
