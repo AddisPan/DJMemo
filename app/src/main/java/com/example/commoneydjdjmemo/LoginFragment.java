@@ -38,7 +38,7 @@ public class LoginFragment extends Fragment {
             String password = etPassword.getText().toString();
 
             // 簡易驗證邏輯
-            if ("addis".equals(account) && "1234".equals(password)) {
+            if ("admin".equals(account) && "1234".equals(password)) {
                 Toast.makeText(requireContext(), "登入成功！", Toast.LENGTH_SHORT).show();
                 Intent intent = new Intent(getActivity(), HomeActivity.class);
                 startActivity(intent);
