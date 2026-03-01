@@ -4,51 +4,61 @@ import android.content.Context;
 import java.util.ArrayList;
 import java.util.List;
 
+/* 
+ * 角色: 中央資料管理器 (使用 Singleton 單例模式)
+ *
+ * 責任:
+ * - 管理全應用的唯一備忘錄資料清單 (memoList)
+ * - 提供資料的載入、儲存與刪除方法
+ * - 實現 Observer 觀察者模式：當資料改變時，自動通知所有註冊的 Fragment (如 HomeFragment)
+ *
+ * 核心模式:
+ * 1. Singleton (單例): 確保全 App 只有一個「管家」，資料不會亂掉。
+ * 2. Observer (觀察者): 像廣播電台，一處更新，到處收到通知。
+ *
+ * 需求對應:
+ * - 實現「資料管理」與「UI 自動更新」
+ */
 public class KeepDataRepository {
-
-    // 1. 單例模式 (Singleton) 必備：隱藏的自己
+    // 1. 單例模式：唯一的實體
     private static KeepDataRepository instance;
 
-    // 管家手上的唯一帳本 (集中管理的資料)
+    // 2. 帳本：存放所有的備忘錄
     private List<Memo> memoList;
 
-    // ==========================================
-    // 📻 2. 建立廣播網 (Observer Pattern)
-    // ==========================================
-    // 定義一個「接收廣播」的介面
+    // 3. 廣播介面：定義「當資料變動時要做什麼」
     public interface OnDataChangeListener {
         void onDataChanged(List<Memo> newList);
     }
 
-    // 廣播名單 (誰想知道資料更新，就加進這個清單)
+    // 4. 廣播名單：記錄誰在聽廣播
     private final List<OnDataChangeListener> listeners = new ArrayList<>();
 
-    // 註冊廣播 (加入群組)
+    // 註冊廣播：Fragment 開始聽
     public void addListener(OnDataChangeListener listener) {
         if (!listeners.contains(listener)) {
             listeners.add(listener);
         }
     }
 
-    // 取消註冊 (退出群組，避免記憶體外洩)
+    // 取消註冊：Fragment 離開時停止聽 (防止記憶體外洩)
     public void removeListener(OnDataChangeListener listener) {
         listeners.remove(listener);
     }
 
-    // 大聲廣播：「資料更新啦！」
+    // 發送廣播：遍歷名單，通知大家資料變了
     private void notifyListeners() {
         for (OnDataChangeListener listener : listeners) {
-            listener.onDataChanged(memoList);
+            listener.onDataChanged(new ArrayList<>(memoList)); // 傳遞副本更安全
         }
     }
 
-    // ==========================================
-    // 🔒 3. 單例模式的鎖與鑰匙
-    // ==========================================
+    // 私有建構子：防止外部直接 new
     private KeepDataRepository() {
         memoList = new ArrayList<>();
     }
 
+    // 取得唯一實例
     public static KeepDataRepository getInstance() {
         if (instance == null) {
             instance = new KeepDataRepository();
@@ -56,37 +66,45 @@ public class KeepDataRepository {
         return instance;
     }
 
-    // ==========================================
-    // 📂 4. 管家專屬工作區 (取代原本在 Fragment 裡的邏輯)
-    // ==========================================
-
-    // (A) 初始化讀取資料
+    // 從 XML 檔案載入資料
     public void loadData(Context context) {
         memoList = FileUtils.readFromXML(context);
-        notifyListeners(); // 讀完資料後，廣播給首頁更新畫面！
+        notifyListeners();
     }
 
-    // (B) 取得目前資料 (給 Adapter 或其他地方需要時用)
+    // 取得目前的清單
     public List<Memo> getMemoList() {
         return memoList;
     }
 
-    // (C) 存檔 (自動判斷是新增還是修改)
+    /**
+     * 儲存或更新備忘錄
+     * @param position 如果是 -1 表示新增，否則為更新指定位置
+     */
     public void saveMemo(Context context, Memo memo, int position) {
         if (position == -1) {
-            memoList.add(0, memo); // 新增放最前面
-        } else {
-            if (position < memoList.size()) {
-                memoList.set(position, memo); // 修改舊資料
-            } else {
-                memoList.add(0, memo);
-            }
+            memoList.add(0, memo); // 新增的排在最上面
+        } else if (position >= 0 && position < memoList.size()) {
+            memoList.set(position, memo); // 更新現有內容
         }
 
-        // 存入 XML 實體檔案
+        // 持久化到硬碟並通知 UI
         FileUtils.saveToXML(context, memoList);
+        notifyListeners();
+    }
 
-        // 🌟 存檔完成後，立刻廣播通知大家！
+    /**
+     * 複選刪除：移除所有被勾選的項目
+     */
+    public void deleteSelectedMemos(Context context) {
+        // 使用「倒序迴圈」刪除，避免 Index 偏移錯誤
+        for (int i = memoList.size() - 1; i >= 0; i--) {
+            if (memoList.get(i).isSelected()) {
+                memoList.remove(i);
+            }
+        }
+        // 存檔並廣播
+        FileUtils.saveToXML(context, memoList);
         notifyListeners();
     }
 }

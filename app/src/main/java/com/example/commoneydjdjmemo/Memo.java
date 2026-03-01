@@ -4,12 +4,25 @@ import java.io.Serializable;
 import org.simpleframework.xml.Element; // 新增匯入
 import org.simpleframework.xml.Root;    // 新增匯入
 
-// 1. 加上 @Root 標籤，告訴 Simple-XML 這是一個 XML 節點
+/*備忘錄的資料模型物件
+ *
+ * 用途:
+ * - 保存一筆備忘錄的所有欄位: id, time, title, tag, content, isCompleted, isSelected
+ * - 使用 Simple-XML 庫來序列化/反序列化 (把物件 ↔ XML 互轉)
+ *
+ * 需求對應:
+ * - 實現「資料內容」需求 (時間、標籤、標題、內容、完成狀態)
+ * - 被 EditorFragment 和 KeepDataRepository 在新增/編輯/刪除時使用
+ *
+ * 重要筆記:
+ * - Simple-XML 反序列化時需要空建構子
+ * - isSelected 只是 UI 狀態，用於複選刪除，不應被存進 XML (可選)
+ */
 @Root(name = "Memo")
 public class Memo implements Serializable {
+    // 欄位宣告 - 每個都要加 @Element。required = fals 如果 XML 讀取時沒這個欄位，不要報錯，直接跳過
+    // 這樣可以向後相容 (舊版本的 XML 可能沒有某些新欄位)
 
-    // 2. 每個想要存進 XML 的欄位，上面都要加 @Element(required = false)
-    // required = false 代表如果讀取時沒這個欄位，也不要報錯閃退
     @Element(required = false)
     private long id;
 
@@ -31,29 +44,27 @@ public class Memo implements Serializable {
     @Element(required = false)
     private boolean isSelected;
 
-    // =========================================================
-    // 【超級重要新增】Simple-XML 專用的空建構子 (不可省略！)
-    // =========================================================
+
+    // 空建構子 (Simple-XML 必須要)
     public Memo() {
     }
 
-    // =========================================================
-    // 原本你寫的建構子 (保留，給你在 EditorActivity 新增筆記時用)
-    // =========================================================
+    // 帶參數的建構子 (新增筆記時用)
     public Memo(String title, String tag, String content, String time) {
+        // 用系統時間戳生成唯一 ID
         this.id = System.currentTimeMillis();
         this.title = title;
         this.tag = tag;
         this.content = content;
         this.time = time;
 
+        // 新建的備忘錄預設「未完成」
         this.isCompleted = false;
+        // 新建的備忘錄預設「未勾選」
         this.isSelected = false;
     }
 
-    // =========================================================
-    // 3. 原本的 Getter / Setter (完全保留不動)
-    // =========================================================
+    // Getter / Setter 方法
     public long getId() { return id; }
     public void setId(long id) { this.id = id; }
 
