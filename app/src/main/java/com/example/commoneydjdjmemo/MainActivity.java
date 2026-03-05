@@ -20,7 +20,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        //This is master line!
+        //這是Master & Branch 合力完成的
         // 初始化時載入登入頁面
         if (savedInstanceState == null) {
             getSupportFragmentManager().beginTransaction()
