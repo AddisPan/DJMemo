@@ -21,6 +21,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         //這是Master & Branch 合力完成的動作
+        // Modified By GitHub website
         // 初始化時載入登入頁面
         if (savedInstanceState == null) {
             getSupportFragmentManager().beginTransaction()
