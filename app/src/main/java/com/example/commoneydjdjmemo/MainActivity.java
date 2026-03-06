@@ -20,7 +20,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        //這是Master&Branch
+        //這是Master
         //修好 Bug
         //This is modify by website
         // 初始化時載入登入頁面
