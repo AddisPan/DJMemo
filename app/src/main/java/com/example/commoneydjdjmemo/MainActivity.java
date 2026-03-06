@@ -22,6 +22,7 @@ public class MainActivity extends AppCompatActivity {
 
         //這是Master&Branch
         //修好 Bug
+        //This is modify by GitHub website
         // 初始化時載入登入頁面
         if (savedInstanceState == null) {
             getSupportFragmentManager().beginTransaction()
